@@ -41,6 +41,7 @@ type Client struct {
 	connPoolSize int
 	*http.Client
 	httpTrace bool
+	enableLog bool
 }
 
 func New(endpoint string, apiKey string, opts ...Option) *Client {
@@ -51,6 +52,7 @@ func New(endpoint string, apiKey string, opts ...Option) *Client {
 		writeTimeout: defaultWriteTimeout,
 		dialTimeout:  defaultDialTimeout,
 		connPoolSize: defaultConnPoolSize,
+		enableLog:    false,
 		apiVersion:   "v1",
 	}
 	for _, opt := range opts {
@@ -106,7 +108,9 @@ func call[I, O any](client *Client, ctx context.Context, method, path string, bo
 		if err != nil {
 			return nil, err
 		}
-		slog.Info("request body", "body", string(bodyBytes))
+		if client.enableLog {
+			slog.Info("request body", "body", string(bodyBytes))
+		}
 		hasBody = true
 		reader = bytes.NewReader(bodyBytes)
 	}
@@ -162,6 +166,8 @@ func call[I, O any](client *Client, ctx context.Context, method, path string, bo
 		slog.Error("call api error", "code", recv.Code, "message", recv.Message)
 		return nil, fmt.Errorf("call api error,code:%d,message:%s", recv.Code, recv.Message)
 	}
-	slog.Info("call api success", "requestId", recv.RequestId, "output", recv.Output)
+	if client.enableLog {
+		slog.Info("call api success", "requestId", recv.RequestId, "output", recv.Output)
+	}
 	return &recv.Output, nil
 }

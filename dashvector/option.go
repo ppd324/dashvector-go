@@ -18,6 +18,11 @@ func WithEndpoint(endpoint string) Option {
 	}
 }
 
+func WithEnableLog(enable bool) Option {
+	return func(client *Client) {
+		client.enableLog = enable
+	}
+}
 func WithApiKey(apiKey string) Option {
 	return func(c *Client) {
 		c.apiKey = apiKey
